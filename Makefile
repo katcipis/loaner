@@ -28,4 +28,12 @@ lint:
 
 .PHONY: image
 image:
-	docker build -t $(img) --build-arg GOVERSION=$(goversion) .
+	docker build -t $(img) --build-arg GOVERSION=$(goversion) --build-arg VERSION=$(version) .
+
+.PHONY: run
+run: image
+	docker run $(img)
+
+.PHONY: publish
+publish: image
+	docker push $(img)
