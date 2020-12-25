@@ -6,7 +6,6 @@ img=katcipis/loaner:$(version)
 vols=-v `pwd`:/app -w /app
 run_go=docker run --rm $(vols) golang:$(goversion)
 run_lint=docker run --rm $(vols) golangci/golangci-lint:v$(golangci_lint_version)
-gotests=go test -coverprofile=$(cov) -race ./...
 cov=coverage.out
 covhtml=coverage.html
 
@@ -16,7 +15,7 @@ all: test lint
 
 .PHONY: test
 test:
-	$(run_go) $(gotests)
+	$(run_go) go test -coverprofile=$(cov) -race ./...
 
 .PHONY: coverage
 coverage: test
