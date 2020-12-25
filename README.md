@@ -16,11 +16,9 @@
 
 # Loaner
 
-This is a service responsible for creating payment plans for loans.
+Loaner is a service responsible for creating payment plans for loans.
 
-# API
-
-The reference documentation for the API can be found [here](docs/api.md).
+The reference documentation for the API can be found [here](api.md).
 
 # Development
 
