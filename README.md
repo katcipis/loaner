@@ -1,3 +1,19 @@
+<!-- mdtocstart -->
+
+# Table of Contents
+
+- [Loaner](#loaner)
+- [API](#api)
+- [Development](#development)
+    - [Dependencies](#dependencies)
+    - [Running tests](#running-tests)
+    - [Linting](#linting)
+    - [Releasing](#releasing)
+    - [Running Locally](#running-locally)
+- [Deployment](#deployment)
+
+<!-- mdtocend -->
+
 # Loaner
 
 This is a service responsible for creating payment plans for loans.
@@ -84,7 +100,7 @@ Here is an example of how to make a request to the service with cURL:
 curl http://localhost:8080/v1/loan/plan -X POST -d '{"todo":"example"}'
 ```
 
-## Deployment
+# Deployment
 
 To deploy the service you can use Docker images or build the
 service directly on the host and copy the binary.
