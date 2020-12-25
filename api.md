@@ -37,6 +37,14 @@ to be considered obligatory, unless they are explicitly
 documented as optional. Also all fields of type **<string>** are
 expected to be non-empty by default, unless stated otherwise.
 
+Two domain specific types (not native on JSON) are defined here,
+"<decimal>" and "<date>". When a field has type "<decimal>" you
+can expect an string representing decimal values,
+like "5000.10" and "5.0".
+
+When a field has type "<date>" you can expect an string in the form
+"2018-01-01T00:00:01Z".
+
 
 # Error Handling
 
@@ -72,12 +80,27 @@ With the following request body:
 
 ```json
 {
+"loanAmount": <decimal>,
+"nominalRate": <decimal>,
+"duration": <int>,
+"startDate": <date>
 }
 ```
+
 
 In case of success you can expect an status code 201 and the following response:
 
 ```json
 {
+    "borrowerPayments": [
+        {
+            "borrowerPaymentAmount": <decimal>,
+            "date": <date>,
+            "initialOutstandingPrincipal": <decimal>,
+            "interest": <decimal>,
+            "principal": <decimal>,
+            "remainingOutstandingPrincipal": <decimal>
+        }
+    ]
 }
 ```
