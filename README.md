@@ -83,3 +83,27 @@ Here is an example of how to make a request to the service with cURL:
 ```sh
 curl http://localhost:8080/v1/loan/plan -X POST -d '{"todo":"example"}'
 ```
+
+## Deployment
+
+To deploy the service you can use Docker images or build the
+service directly on the host and copy the binary.
+
+To publish the image, which later can be used on deployment
+(eg: on Kubernetes) run:
+
+```sh
+make publish
+```
+
+To build just the binary run:
+
+```sh
+make build
+```
+
+And test the binary with:
+
+```sh
+./cmd/loaner/loaner --version
+```

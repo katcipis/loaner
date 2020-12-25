@@ -37,3 +37,7 @@ run: image
 .PHONY: publish
 publish: image
 	docker push $(img)
+
+.PHONY: build
+build: 
+	go build -o ./cmd/loaner/loaner -ldflags "-X main.VersionString=$(version)" ./cmd/loaner/loaner.go
