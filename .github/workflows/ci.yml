@@ -2,18 +2,13 @@ name: CI
 on: [push]
 jobs:
 
-  setup:
-    name: Setup project
+  test:
+    name: Test
     runs-on: ubuntu-latest
 
     steps:
       - name: Check out code into the Go module directory
         uses: actions/checkout@v1
 
-  test:
-    name: Test
-    runs-on: ubuntu-latest
-
-    steps:
       - name: Run Tests
         run: make test
