@@ -121,3 +121,32 @@ And test the binary with:
 ```sh
 ./cmd/loaner/loaner --version
 ```
+
+# FAQ
+
+## Why decimal lib ?
+
+I'm not extensively experienced with financial calculations but I know
+enough about them and floating point precision issues to know
+that it is not safe to do calculation regarding money using floating point.
+It is very easy for cumulative precision errors to sum up and making
+people lose (or gain) money. So I did some searching and found the
+library used here.
+
+## Why vendor ?
+
+When I started programming in Go I had very mixed feelings with vendoring
+since it was the first language that presented this idea as a first class
+concept. In time I learned to appreciate it, even when pull requests got
+big because of changes on vendor that helped the reality of the complexity
+introduced by the dependencies to sink in (I even found that a third party
+library panicked because of that).
+
+With the advent of Go modules vendoring stopped being considered one
+of the main ways to handle dependencies, but I still appreciate its
+simplicity and it inter-operates really well with Go modules (you can
+use both).
+
+Also running tests and linting inside containers gets faster without having
+to handle go mod caching complications (by default each container run re-downloads
+dependencies). 
