@@ -53,17 +53,43 @@ func CreatePlan(
 		)
 	}
 
+	const precision = 2
+
+	annuity, _ := CalculateAnnuity(totalLoanAmount, annualInterestRate, durationInMonths)
+	//TODO: handle annuity calculation error
+
 	payments := make([]Payment, durationInMonths)
 	year := start.Year()
 	day := start.Day()
 	startMonth := start.Month()
+	initialOutstandingPrincipal := totalLoanAmount
 
 	for i := range payments {
 		month := startMonth + time.Month(i)
+		date := time.Date(year, month, day, 0, 0, 0, 0, time.UTC)
+		interest := calculateInterest(annualInterestRate, initialOutstandingPrincipal).Round(precision)
+
+		principal := annuity.Sub(interest)
+		if principal.GreaterThan(initialOutstandingPrincipal) {
+			principal = initialOutstandingPrincipal
+			fmt.Println("principal", principal)
+			fmt.Println("initial", initialOutstandingPrincipal)
+		}
+		principal = principal.Round(precision)
+
+		paymentAmount := principal.Add(interest).Round(precision)
+		remainingOutstandingPrincipal := initialOutstandingPrincipal.Sub(principal)
 
 		payments[i] = Payment{
-			Date: time.Date(year, month, day, 0, 0, 0, 0, time.UTC),
+			Date:                          date,
+			PaymentAmount:                 paymentAmount,
+			Interest:                      interest,
+			Principal:                     principal,
+			InitialOutstandingPrincipal:   initialOutstandingPrincipal,
+			RemainingOutstandingPrincipal: remainingOutstandingPrincipal,
 		}
+
+		initialOutstandingPrincipal = remainingOutstandingPrincipal
 	}
 	return payments, nil
 }
@@ -130,4 +156,18 @@ func calculateMonthlyInterestRate(annualInterestRate decimal.Decimal) decimal.De
 
 func fromPercentToDecimal(percentVal decimal.Decimal) decimal.Decimal {
 	return percentVal.Div(decimal.NewFromInt(100))
+}
+
+func calculateInterest(
+	annualInterestRate decimal.Decimal,
+	initialOutstandingPrincipal decimal.Decimal,
+) decimal.Decimal {
+	const (
+		daysInMonth = 30
+		daysInYear  = 360
+	)
+	rate := fromPercentToDecimal(annualInterestRate)
+	numerator := rate.Mul(decimal.NewFromInt(daysInMonth))
+	numerator = numerator.Mul(initialOutstandingPrincipal)
+	return numerator.Div(decimal.NewFromInt(daysInYear))
 }
