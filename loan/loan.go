@@ -49,7 +49,7 @@ func CalculateAnnuity(
 		)
 	}
 
-	if annualInterestRate.LessThan(decimal.Zero) {
+	if annualInterestRate.LessThanOrEqual(decimal.Zero) {
 		return decimal.Zero, fmt.Errorf(
 			"can't calculate annuity:%w: interest rate should be bigger than 0, it is %v",
 			ErrInvalidParameter,
