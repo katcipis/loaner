@@ -44,6 +44,15 @@ func CreatePlan(
 	durationInMonths int,
 	start time.Time,
 ) ([]Payment, error) {
+
+	if start.Day() > 28 {
+		return nil, fmt.Errorf(
+			"can't create loan plan:%w:start date %v day can't be bigger than 28",
+			ErrInvalidParameter,
+			start,
+		)
+	}
+
 	payments := make([]Payment, durationInMonths)
 
 	for i := range payments {

@@ -67,7 +67,7 @@ func TestCreatePlan(t *testing.T) {
 			},
 		},
 		{
-			name:               "AcrossYearBoundary",
+			name:               "SuccessAcrossYearBoundary",
 			totalLoanAmount:    "5000.0",
 			annualInterestRate: "5.0",
 			durationInMonths:   3,
@@ -83,6 +83,30 @@ func TestCreatePlan(t *testing.T) {
 					Date: parseTime(t, "2021-02-01T00:00:00Z"),
 				},
 			},
+		},
+		{
+			name:               "ErrorOnStartDateDay29",
+			totalLoanAmount:    "5000.0",
+			annualInterestRate: "5.0",
+			durationInMonths:   3,
+			startDate:          parseTime(t, "2020-12-29T00:00:00Z"),
+			wantErr:            loan.ErrInvalidParameter,
+		},
+		{
+			name:               "ErrorOnStartDateDay30",
+			totalLoanAmount:    "5000.0",
+			annualInterestRate: "5.0",
+			durationInMonths:   3,
+			startDate:          parseTime(t, "2020-12-29T00:00:00Z"),
+			wantErr:            loan.ErrInvalidParameter,
+		},
+		{
+			name:               "ErrorOnStartDateDay31",
+			totalLoanAmount:    "5000.0",
+			annualInterestRate: "5.0",
+			durationInMonths:   3,
+			startDate:          parseTime(t, "2020-12-29T00:00:00Z"),
+			wantErr:            loan.ErrInvalidParameter,
 		},
 	}
 
