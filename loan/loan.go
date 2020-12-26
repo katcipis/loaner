@@ -37,7 +37,7 @@ const (
 // The annual interest rate is informed as a percent, like 5.0, meaning 5 per cent an year.
 //
 // It returns an error if any of the parameters is invalid, like the duration
-// in months being zero.
+// in months being zero or the start date has a day bigger than 28.
 func CreatePlan(
 	totalLoanAmount decimal.Decimal,
 	annualInterestRate decimal.Decimal,
@@ -47,7 +47,6 @@ func CreatePlan(
 	payments := make([]Payment, durationInMonths)
 
 	for i := range payments {
-		// TODO: handle corner cases
 		year := start.Year()
 		month := start.Month() + time.Month(i)
 		day := start.Day()

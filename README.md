@@ -172,3 +172,11 @@ use both).
 Also running tests and linting inside containers gets faster without having
 to handle go mod caching complications (by default each container run re-downloads
 dependencies). 
+
+## Constraint on start date
+
+The start date day is constrained on the range 01-28 to avoid having to deal
+with leap years and months with different amount of days (30/31). It makes
+calculating the payment days easier. Almost all systems that I use that will
+charge me monthly, like credit cards and loans, just give me a few days along
+the month as options for payment days, so it seems like a reasonable constraint.
