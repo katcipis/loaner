@@ -54,11 +54,12 @@ func CreatePlan(
 	}
 
 	payments := make([]Payment, durationInMonths)
+	year := start.Year()
+	day := start.Day()
+	startMonth := start.Month()
 
 	for i := range payments {
-		year := start.Year()
-		month := start.Month() + time.Month(i)
-		day := start.Day()
+		month := startMonth + time.Month(i)
 
 		payments[i] = Payment{
 			Date: time.Date(year, month, day, 0, 0, 0, 0, time.UTC),
