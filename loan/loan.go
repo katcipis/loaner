@@ -3,9 +3,20 @@ package loan
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/shopspring/decimal"
 )
+
+// Payment represents a loan payment with all its information.
+type Payment struct {
+	Date                          time.Time
+	PaymentAmount                 decimal.Decimal
+	Interest                      decimal.Decimal
+	Principal                     decimal.Decimal
+	InitialOutstandingPrincipal   decimal.Decimal
+	RemainingOutstandingPrincipal decimal.Decimal
+}
 
 // Error represents an enumeration of errors returned by the loan
 // package. These errors can be used as error sentinels to check
@@ -19,6 +30,22 @@ const (
 	// ErrInvalidParameter is returned when on of the parameters passed is invalid.
 	ErrInvalidParameter Error = "invalid parameter"
 )
+
+// CreatePlan will create a payment plan, as a list of payments,
+// throughout the lifetime of an annuity loan.
+//
+// The annual interest rate is informed as a percent, like 5.0, meaning 5 per cent an year.
+//
+// It returns an error if any of the parameters is invalid, like the duration
+// in months being zero.
+func CreatePlan(
+	totalLoanAmount decimal.Decimal,
+	annualInterestRate decimal.Decimal,
+	durationInMonths uint,
+	start time.Time,
+) ([]Payment, error) {
+	return nil, nil
+}
 
 // CalculateAnnuity will calculate the annuity payment according to the
 // formula described here: https://financeformulas.net/Annuity_Payment_Formula.html
