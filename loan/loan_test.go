@@ -71,16 +71,16 @@ func TestCreatePlan(t *testing.T) {
 			totalLoanAmount:    "5000.0",
 			annualInterestRate: "5.0",
 			durationInMonths:   3,
-			startDate:          parseTime(t, "2020-12-01T00:00:00Z"),
+			startDate:          parseTime(t, "2020-12-28T00:00:00Z"),
 			want: []loan.Payment{
 				{
-					Date: parseTime(t, "2020-12-01T00:00:00Z"),
+					Date: parseTime(t, "2020-12-28T00:00:00Z"),
 				},
 				{
-					Date: parseTime(t, "2021-01-01T00:00:00Z"),
+					Date: parseTime(t, "2021-01-28T00:00:00Z"),
 				},
 				{
-					Date: parseTime(t, "2021-02-01T00:00:00Z"),
+					Date: parseTime(t, "2021-02-28T00:00:00Z"),
 				},
 			},
 		},
