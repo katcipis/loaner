@@ -44,9 +44,19 @@ func CreatePlan(
 	durationInMonths int,
 	start time.Time,
 ) ([]Payment, error) {
-	// TODO: Validate duration in months for insanely large inputs
-	//payments := make([]Payment, durationInMonths)
-	return nil, nil
+	payments := make([]Payment, durationInMonths)
+
+	for i := range payments {
+		// TODO: handle corner cases
+		year := start.Year()
+		month := start.Month() + time.Month(i)
+		day := start.Day()
+
+		payments[i] = Payment{
+			Date: time.Date(year, month, day, 0, 0, 0, 0, time.UTC),
+		}
+	}
+	return payments, nil
 }
 
 // CalculateAnnuity will calculate the annuity payment according to the
