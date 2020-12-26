@@ -28,10 +28,38 @@ func TestAnnuityCalculation(t *testing.T) {
 
 	tests := []Test{
 		{
+			name:               "SuccessOn5000LoanWith5.0RateIn24Months",
+			totalLoanAmount:    "5000.0",
+			annualInterestRate: "5.0",
+			durationInMonths:   24,
+			want:               "219.36",
+		},
+		{
 			name:               "ErrorIfDurationIsZero",
 			totalLoanAmount:    "500.00",
 			annualInterestRate: "3.0",
 			durationInMonths:   0,
+			wantErr:            loan.ErrInvalidParameter,
+		},
+		{
+			name:               "ErrorIfLoanAmountIsZero",
+			totalLoanAmount:    "0.00",
+			annualInterestRate: "3.0",
+			durationInMonths:   2,
+			wantErr:            loan.ErrInvalidParameter,
+		},
+		{
+			name:               "ErrorIfLoanAmountIsNegative",
+			totalLoanAmount:    "-10.00",
+			annualInterestRate: "3.0",
+			durationInMonths:   2,
+			wantErr:            loan.ErrInvalidParameter,
+		},
+		{
+			name:               "ErrorIfInterestRateIsNegative",
+			totalLoanAmount:    "10.00",
+			annualInterestRate: "-1.0",
+			durationInMonths:   2,
 			wantErr:            loan.ErrInvalidParameter,
 		},
 	}
