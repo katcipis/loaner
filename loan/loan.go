@@ -41,9 +41,11 @@ const (
 func CreatePlan(
 	totalLoanAmount decimal.Decimal,
 	annualInterestRate decimal.Decimal,
-	durationInMonths uint,
+	durationInMonths int,
 	start time.Time,
 ) ([]Payment, error) {
+	// TODO: Validate duration in months for insanely large inputs
+	//payments := make([]Payment, durationInMonths)
 	return nil, nil
 }
 
@@ -57,10 +59,10 @@ func CreatePlan(
 func CalculateAnnuity(
 	totalLoanAmount decimal.Decimal,
 	annualInterestRate decimal.Decimal,
-	durationInMonths uint,
+	durationInMonths int,
 ) (decimal.Decimal, error) {
 
-	if durationInMonths == 0 {
+	if durationInMonths <= 0 {
 		return decimal.Zero, fmt.Errorf(
 			"can't calculate annuity:%w: duration should be bigger than 0, it is %v",
 			ErrInvalidParameter,

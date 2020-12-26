@@ -23,7 +23,7 @@ func TestCreatePlan(t *testing.T) {
 		name               string
 		totalLoanAmount    string
 		annualInterestRate string
-		durationInMonths   uint
+		durationInMonths   int
 		startDate          time.Time
 		want               []loan.Payment
 		wantErr            error
@@ -82,7 +82,7 @@ func TestAnnuityCalculation(t *testing.T) {
 		name               string
 		totalLoanAmount    string
 		annualInterestRate string
-		durationInMonths   uint
+		durationInMonths   int
 		want               string
 		wantErr            error
 	}
@@ -135,6 +135,13 @@ func TestAnnuityCalculation(t *testing.T) {
 			totalLoanAmount:    "500.00",
 			annualInterestRate: "3.0",
 			durationInMonths:   0,
+			wantErr:            loan.ErrInvalidParameter,
+		},
+		{
+			name:               "ErrorIfDurationIsNegative",
+			totalLoanAmount:    "500.00",
+			annualInterestRate: "3.0",
+			durationInMonths:   -1,
 			wantErr:            loan.ErrInvalidParameter,
 		},
 		{
