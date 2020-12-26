@@ -12,6 +12,7 @@
 *.out
 
 *.pdf
+*.html
 
 cmd/loaner/loaner
 
