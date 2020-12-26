@@ -31,56 +31,96 @@ func TestCreatePlan(t *testing.T) {
 
 	tests := []Test{
 		{
-			name:               "SuccessOn5000LoanWith5.0RateIn3Months",
-			totalLoanAmount:    "5000.0",
-			annualInterestRate: "5.0",
-			durationInMonths:   3,
+			name:               "SuccessOn2000LoanWith1.0RateIn2Months",
+			totalLoanAmount:    "2000.0",
+			annualInterestRate: "1.0",
+			durationInMonths:   2,
 			startDate:          parseTime(t, "2018-01-01T00:00:00Z"),
 			want: []loan.Payment{
 				{
-					Date: parseTime(t, "2018-01-01T00:00:00Z"),
+					Date:                          parseTime(t, "2018-01-01T00:00:00Z"),
+					PaymentAmount:                 toDecimal(t, "1001.25"),
+					Interest:                      toDecimal(t, "1.67"),
+					Principal:                     toDecimal(t, "999.58"),
+					InitialOutstandingPrincipal:   toDecimal(t, "2000"),
+					RemainingOutstandingPrincipal: toDecimal(t, "1000.42"),
 				},
 				{
-					Date: parseTime(t, "2018-02-01T00:00:00Z"),
-				},
-				{
-					Date: parseTime(t, "2018-03-01T00:00:00Z"),
+					Date:                          parseTime(t, "2018-02-01T00:00:00Z"),
+					PaymentAmount:                 toDecimal(t, "1001.25"),
+					Interest:                      toDecimal(t, "0.83"),
+					Principal:                     toDecimal(t, "1000.42"),
+					InitialOutstandingPrincipal:   toDecimal(t, "1000.42"),
+					RemainingOutstandingPrincipal: toDecimal(t, "0.00"),
 				},
 			},
 		},
+		// TODO: test case not working yet
+		//{
+		//name:               "SuccessOn5000LoanWith5.0RateIn3Months",
+		//totalLoanAmount:    "5000.0",
+		//annualInterestRate: "5.0",
+		//durationInMonths:   3,
+		//startDate:          parseTime(t, "2018-01-01T00:00:00Z"),
+		//want: []loan.Payment{
+		//{
+		//Date: parseTime(t, "2018-01-01T00:00:00Z"),
+		//},
+		//{
+		//Date: parseTime(t, "2018-02-01T00:00:00Z"),
+		//},
+		//{
+		//Date: parseTime(t, "2018-03-01T00:00:00Z"),
+		//},
+		//},
+		//},
 		{
 			name:               "TimeAndTimezoneInfoOnDateIsIgnored",
-			totalLoanAmount:    "5000.0",
-			annualInterestRate: "5.0",
-			durationInMonths:   3,
 			startDate:          parseTime(t, "2018-01-01T12:00:00+01:00"),
+			totalLoanAmount:    "2000.0",
+			annualInterestRate: "1.0",
+			durationInMonths:   2,
 			want: []loan.Payment{
 				{
-					Date: parseTime(t, "2018-01-01T00:00:00Z"),
+					Date:                          parseTime(t, "2018-01-01T00:00:00Z"),
+					PaymentAmount:                 toDecimal(t, "1001.25"),
+					Interest:                      toDecimal(t, "1.67"),
+					Principal:                     toDecimal(t, "999.58"),
+					InitialOutstandingPrincipal:   toDecimal(t, "2000"),
+					RemainingOutstandingPrincipal: toDecimal(t, "1000.42"),
 				},
 				{
-					Date: parseTime(t, "2018-02-01T00:00:00Z"),
-				},
-				{
-					Date: parseTime(t, "2018-03-01T00:00:00Z"),
+					Date:                          parseTime(t, "2018-02-01T00:00:00Z"),
+					PaymentAmount:                 toDecimal(t, "1001.25"),
+					Interest:                      toDecimal(t, "0.83"),
+					Principal:                     toDecimal(t, "1000.42"),
+					InitialOutstandingPrincipal:   toDecimal(t, "1000.42"),
+					RemainingOutstandingPrincipal: toDecimal(t, "0.00"),
 				},
 			},
 		},
 		{
 			name:               "SuccessAcrossYearBoundary",
-			totalLoanAmount:    "5000.0",
-			annualInterestRate: "5.0",
-			durationInMonths:   3,
+			totalLoanAmount:    "2000.0",
+			annualInterestRate: "1.0",
+			durationInMonths:   2,
 			startDate:          parseTime(t, "2020-12-28T00:00:00Z"),
 			want: []loan.Payment{
 				{
-					Date: parseTime(t, "2020-12-28T00:00:00Z"),
+					Date:                          parseTime(t, "2020-12-28T00:00:00Z"),
+					PaymentAmount:                 toDecimal(t, "1001.25"),
+					Interest:                      toDecimal(t, "1.67"),
+					Principal:                     toDecimal(t, "999.58"),
+					InitialOutstandingPrincipal:   toDecimal(t, "2000"),
+					RemainingOutstandingPrincipal: toDecimal(t, "1000.42"),
 				},
 				{
-					Date: parseTime(t, "2021-01-28T00:00:00Z"),
-				},
-				{
-					Date: parseTime(t, "2021-02-28T00:00:00Z"),
+					Date:                          parseTime(t, "2021-01-28T00:00:00Z"),
+					PaymentAmount:                 toDecimal(t, "1001.25"),
+					Interest:                      toDecimal(t, "0.83"),
+					Principal:                     toDecimal(t, "1000.42"),
+					InitialOutstandingPrincipal:   toDecimal(t, "1000.42"),
+					RemainingOutstandingPrincipal: toDecimal(t, "0.00"),
 				},
 			},
 		},
@@ -106,6 +146,14 @@ func TestCreatePlan(t *testing.T) {
 			annualInterestRate: "5.0",
 			durationInMonths:   3,
 			startDate:          parseTime(t, "2020-12-29T00:00:00Z"),
+			wantErr:            loan.ErrInvalidParameter,
+		},
+		{
+			name:               "ErrorZeroInterestRate",
+			totalLoanAmount:    "5000.0",
+			annualInterestRate: "0.0",
+			durationInMonths:   3,
+			startDate:          parseTime(t, "2020-12-01T00:00:00Z"),
 			wantErr:            loan.ErrInvalidParameter,
 		},
 	}

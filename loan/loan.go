@@ -55,8 +55,10 @@ func CreatePlan(
 
 	const precision = 2
 
-	annuity, _ := CalculateAnnuity(totalLoanAmount, annualInterestRate, durationInMonths)
-	//TODO: handle annuity calculation error
+	annuity, err := CalculateAnnuity(totalLoanAmount, annualInterestRate, durationInMonths)
+	if err != nil {
+		return nil, fmt.Errorf("can't create loan plan:%w", err)
+	}
 
 	payments := make([]Payment, durationInMonths)
 	year := start.Year()
@@ -67,18 +69,16 @@ func CreatePlan(
 	for i := range payments {
 		month := startMonth + time.Month(i)
 		date := time.Date(year, month, day, 0, 0, 0, 0, time.UTC)
-		interest := calculateInterest(annualInterestRate, initialOutstandingPrincipal).Round(precision)
+		interest := calculateInterest(annualInterestRate, initialOutstandingPrincipal).RoundBank(precision)
 
 		principal := annuity.Sub(interest)
 		if principal.GreaterThan(initialOutstandingPrincipal) {
 			principal = initialOutstandingPrincipal
-			fmt.Println("principal", principal)
-			fmt.Println("initial", initialOutstandingPrincipal)
 		}
-		principal = principal.Round(precision)
+		principal = principal.RoundBank(precision)
 
-		paymentAmount := principal.Add(interest).Round(precision)
-		remainingOutstandingPrincipal := initialOutstandingPrincipal.Sub(principal)
+		paymentAmount := principal.Add(interest).RoundBank(precision)
+		remainingOutstandingPrincipal := initialOutstandingPrincipal.Sub(principal).RoundBank(precision)
 
 		payments[i] = Payment{
 			Date:                          date,
