@@ -42,8 +42,9 @@ Two domain specific types (not native on JSON) are defined here,
 can expect an string representing decimal values,
 like "5000.10" and "5.0".
 
-When a field has type "<date>" you can expect an string in the form
-"2018-01-01T00:00:01Z".
+When a field has type "<date>" you can expect an string representation
+of date following the [RFC 3339](https://tools.ietf.org/html/rfc3339),
+for example: "2018-01-01T00:00:01Z".
 
 
 # Error Handling
