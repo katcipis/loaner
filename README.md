@@ -122,6 +122,28 @@ And test the binary with:
 ./cmd/loaner/loaner --version
 ```
 
+# Design
+
+One of the main design principles that I like to apply in code
+is the single responsibility principle. Even though it is debatable
+what a "single responsibility" is (context sensitive)
+it is fairly obvious to me that core logic should be decoupled from delivery
+mechanisms.
+
+So the core logic should not be coupled to the fact
+that the service is delivered through HTTP and the response payloads
+are JSON, etc. Changes on how the logic is delivered to clients should
+not be reflected on changes on the core logic (loan planning).
+
+To enforce that I usually first develop all the core logic without
+writing a single HTTP related code and add this layer on the end
+doing a final end to end integration test.
+
+That is why there is two separate packages, the **loan** one with all the
+core logic of the service and the **api** one that exports the loan logic
+through HTTP.
+
+
 # FAQ
 
 ## Why decimal lib ?
