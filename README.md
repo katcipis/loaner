@@ -124,6 +124,15 @@ And test the binary with:
 
 # FAQ
 
+## Why decimal lib ?
+
+I'm not extensively experienced with financial calculations but I know
+enough about them and floating point precision issues to know
+that it is not safe to do calculation regarding money using floating point.
+It is very easy for cumulative precision errors to sum up and making
+people lose (or gain) money. So I did some searching and found the
+library used here.
+
 ## Why vendor ?
 
 When I started programming in Go I had very mixed feelings with vendoring
