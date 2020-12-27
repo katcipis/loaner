@@ -7,25 +7,56 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/katcipis/loaner/api"
 	"github.com/katcipis/loaner/loan"
+	"github.com/shopspring/decimal"
 )
 
 func TestLoanPlanCreation(t *testing.T) {
 	type Test struct {
 		name           string
 		requestBody    []byte
+		injectResponse []loan.Payment
+		injectErr      error
 		wantStatusCode int
 		want           api.CreateLoanPlanResponse
 	}
 
-	tests := []Test{}
+	tests := []Test{
+		{
+			name:           "BadRequestIfParametersAreInvalid",
+			requestBody:    toJSON(t, api.CreateLoanPlanRequest{}),
+			injectErr:      loan.ErrInvalidParameter,
+			wantStatusCode: http.StatusBadRequest,
+		},
+	}
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			service := api.New(loan.CreatePlan)
+			// I'm not extremely against mocking frameworks
+			// Used them on the past, like testify mocks
+			// My overall feeling is that they made the tests
+			// more bloated and it was easier to end up with
+			// odd error messages that were hard to debug on
+			// failures. Also depending on how you use mocks
+			// you can end up coupling too much on the structure
+			// of the code instead of the behavior.
+			// So I tend to prefer lightweight handwritten
+			// mocks, preferably fakes (like in-memory storages).
+			//
+			// There is a good post from Kent Beck that relates to this:
+			// https://medium.com/@kentbeck_7670/programmer-test-principles-d01c064d7934
+			service := api.New(func(
+				totalLoanAmount decimal.Decimal,
+				annualInterestRate decimal.Decimal,
+				durationInMonths int,
+				start time.Time,
+			) ([]loan.Payment, error) {
+				return test.injectResponse, test.injectErr
+			})
 			server := httptest.NewServer(service)
 			defer server.Close()
 
