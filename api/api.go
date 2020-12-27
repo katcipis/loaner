@@ -82,7 +82,7 @@ func New(createLoanPlan LoanPlanCreator) http.Handler {
 
 		err := dec.Decode(&parsedReq)
 		if err != nil {
-			msg := fmt.Sprintf("error parsing JSON request body: %v", err)
+			msg := fmt.Sprintf("cant parse request body as JSON:%v", err)
 			res.WriteHeader(http.StatusBadRequest)
 			logResponseBodyWrite(logger, res, newErrorResponse(msg))
 			logger.WithFields(log.Fields{"error": msg}).Warning("invalid request body")
@@ -125,7 +125,7 @@ func New(createLoanPlan LoanPlanCreator) http.Handler {
 				// operational trace (instead of stack traces).
 				// But I never tried it yet :-).
 				logResponseBodyWrite(logger, res, newErrorResponse(err.Error()))
-				logger.WithFields(log.Fields{"error": err.Error()}).Warning("bad request error")
+				logger.WithError(err).Warning("bad request error")
 				return
 			}
 			// Specially when you can't give much detail on errors for
@@ -133,7 +133,7 @@ func New(createLoanPlan LoanPlanCreator) http.Handler {
 			// a tracing id for errors to help map the error to the logs.
 			res.WriteHeader(http.StatusInternalServerError)
 			logResponseBodyWrite(logger, res, newErrorResponse("internal server error"))
-			logger.WithFields(log.Fields{"error": err.Error()}).Error("internal server error")
+			logger.WithError(err).Error("internal server error")
 			return
 		}
 
@@ -185,8 +185,8 @@ func jsonResponse(v interface{}) []byte {
 }
 
 func handleFieldParsingError(logger *log.Entry, res http.ResponseWriter, fieldName string, err error) {
-	msg := fmt.Sprintf("error parsing %s from request:%v", fieldName, err)
+	msg := fmt.Sprintf("can't parse %q from request:%v", fieldName, err)
 	res.WriteHeader(http.StatusBadRequest)
 	logResponseBodyWrite(logger, res, newErrorResponse(msg))
-	logger.WithFields(log.Fields{"error": msg}).Warning("invalid request body")
+	logger.WithError(err).WithFields(log.Fields{"field": fieldName}).Warning("invalid field on request")
 }
