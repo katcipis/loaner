@@ -89,6 +89,24 @@ func New(createLoanPlan LoanPlanCreator) http.Handler {
 			return
 		}
 
+		_, err = decimal.NewFromString(parsedReq.LoanAmount)
+		if err != nil {
+			handleFieldParsingError(logger, res, "loanAmount", err)
+			return
+		}
+
+		_, err = decimal.NewFromString(parsedReq.NominalRate)
+		if err != nil {
+			handleFieldParsingError(logger, res, "nominalRate", err)
+			return
+		}
+
+		_, err = time.Parse(dateLayout, parsedReq.StartDate)
+		if err != nil {
+			handleFieldParsingError(logger, res, "startDate", err)
+			return
+		}
+
 		// TODO: check parameters are properly passed
 		payments, err := createLoanPlan(decimal.Zero, decimal.Zero, 0, time.Time{})
 		if err != nil {
@@ -129,11 +147,15 @@ func New(createLoanPlan LoanPlanCreator) http.Handler {
 	return mux
 }
 
+const (
+	dateLayout = time.RFC3339
+)
+
 func toBorrowerPayments(payments []loan.Payment) []BorrowerPayment {
 	res := make([]BorrowerPayment, len(payments))
 	for i, p := range payments {
 		res[i] = BorrowerPayment{
-			Date:                          p.Date.Format(time.RFC3339),
+			Date:                          p.Date.Format(dateLayout),
 			PaymentAmount:                 p.PaymentAmount.String(),
 			Interest:                      p.Interest.String(),
 			Principal:                     p.Principal.String(),
@@ -161,4 +183,11 @@ func jsonResponse(v interface{}) []byte {
 	// TODO: handle and log err
 	res, _ := json.Marshal(v)
 	return res
+}
+
+func handleFieldParsingError(logger *log.Entry, res http.ResponseWriter, fieldName string, err error) {
+	msg := fmt.Sprintf("error parsing %s from request:%v", fieldName, err)
+	res.WriteHeader(http.StatusBadRequest)
+	logResponseBodyWrite(logger, res, errorResponse(msg))
+	logger.WithFields(log.Fields{"error": msg}).Warning("invalid request body")
 }

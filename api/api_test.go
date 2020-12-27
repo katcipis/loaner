@@ -35,7 +35,7 @@ func TestLoanPlanCreation(t *testing.T) {
 			wantStatusCode: http.StatusMethodNotAllowed,
 		},
 		{
-			name:           "BadRequestIfParametersAreInvalid",
+			name:           "BadRequestIfParametersAreConsideredInvalidByLoanPlanCreator",
 			requestBody:    validCreateLoanRequestBody(t),
 			injectErr:      loan.ErrInvalidParameter,
 			wantStatusCode: http.StatusBadRequest,
@@ -43,6 +43,36 @@ func TestLoanPlanCreation(t *testing.T) {
 		{
 			name:           "BadRequestIfRequestBodyIsEmpty",
 			requestBody:    []byte{},
+			wantStatusCode: http.StatusBadRequest,
+		},
+		{
+			name: "BadRequestIfRequestLoanAmountIsNotDecimal",
+			requestBody: toJSON(t, api.CreateLoanPlanRequest{
+				LoanAmount:  "notADecimal",
+				NominalRate: "5.0",
+				Duration:    1,
+				StartDate:   "2020-12-01T00:00:00Z",
+			}),
+			wantStatusCode: http.StatusBadRequest,
+		},
+		{
+			name: "BadRequestIfRequestNominalRateIsNotDecimal",
+			requestBody: toJSON(t, api.CreateLoanPlanRequest{
+				LoanAmount:  "1.00",
+				NominalRate: "wrongValue",
+				Duration:    1,
+				StartDate:   "2020-12-01T00:00:00Z",
+			}),
+			wantStatusCode: http.StatusBadRequest,
+		},
+		{
+			name: "BadRequestIfRequestStartDateIsNotValidDate",
+			requestBody: toJSON(t, api.CreateLoanPlanRequest{
+				LoanAmount:  "1.00",
+				NominalRate: "1.0",
+				Duration:    1,
+				StartDate:   "notDate",
+			}),
 			wantStatusCode: http.StatusBadRequest,
 		},
 		{
@@ -144,14 +174,18 @@ func TestLoanPlanCreation(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			// I'm not extremely against mocking frameworks
 			// Used them on the past, like testify mocks
+			//
 			// My overall feeling is that they made the tests
 			// more bloated and it was easier to end up with
 			// odd error messages that were hard to debug on
 			// failures. Also depending on how you use mocks
 			// you can end up coupling too much on the structure
 			// of the code instead of the behavior.
+			//
 			// So I tend to prefer lightweight handwritten
 			// mocks, preferably fakes (like in-memory storages).
+			// And when possible to integrated tests instead of validating
+			// individual parameters.
 			//
 			// There is a good post from Kent Beck that relates to this:
 			// https://medium.com/@kentbeck_7670/programmer-test-principles-d01c064d7934
@@ -244,7 +278,12 @@ func newRequest(t *testing.T, method string, url string, body []byte) *http.Requ
 }
 
 func validCreateLoanRequestBody(t *testing.T) []byte {
-	return toJSON(t, api.CreateLoanPlanRequest{})
+	return toJSON(t, api.CreateLoanPlanRequest{
+		LoanAmount:  "1000.00",
+		NominalRate: "5.0",
+		Duration:    1,
+		StartDate:   "2020-12-01T00:00:00Z",
+	})
 }
 
 func parseDecimal(t *testing.T, v string) decimal.Decimal {
