@@ -3,9 +3,20 @@ package loan
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/shopspring/decimal"
 )
+
+// Payment represents a loan payment with all its information.
+type Payment struct {
+	Date                          time.Time
+	PaymentAmount                 decimal.Decimal
+	Interest                      decimal.Decimal
+	Principal                     decimal.Decimal
+	InitialOutstandingPrincipal   decimal.Decimal
+	RemainingOutstandingPrincipal decimal.Decimal
+}
 
 // Error represents an enumeration of errors returned by the loan
 // package. These errors can be used as error sentinels to check
@@ -20,6 +31,68 @@ const (
 	ErrInvalidParameter Error = "invalid parameter"
 )
 
+// CreatePlan will create a payment plan, as a list of payments,
+// throughout the lifetime of an annuity loan.
+//
+// The annual interest rate is informed as a percent, like 5.0, meaning 5 per cent an year.
+//
+// It returns an error if any of the parameters is invalid, like the duration
+// in months being zero or the start date has a day bigger than 28.
+func CreatePlan(
+	totalLoanAmount decimal.Decimal,
+	annualInterestRate decimal.Decimal,
+	durationInMonths int,
+	start time.Time,
+) ([]Payment, error) {
+
+	if start.Day() > 28 {
+		return nil, fmt.Errorf(
+			"can't create loan plan:%w:start date %v day can't be bigger than 28",
+			ErrInvalidParameter,
+			start,
+		)
+	}
+
+	const precision = 2
+
+	annuity, err := CalculateAnnuity(totalLoanAmount, annualInterestRate, durationInMonths)
+	if err != nil {
+		return nil, fmt.Errorf("can't create loan plan:%w", err)
+	}
+
+	payments := make([]Payment, durationInMonths)
+	year := start.Year()
+	day := start.Day()
+	startMonth := start.Month()
+	initialOutstandingPrincipal := totalLoanAmount
+
+	for i := range payments {
+		month := startMonth + time.Month(i)
+		date := time.Date(year, month, day, 0, 0, 0, 0, time.UTC)
+		interest := calculateInterest(annualInterestRate, initialOutstandingPrincipal).RoundBank(precision)
+
+		principal := annuity.Sub(interest).RoundBank(precision)
+		if principal.GreaterThan(initialOutstandingPrincipal) {
+			principal = initialOutstandingPrincipal
+		}
+
+		paymentAmount := principal.Add(interest).RoundBank(precision)
+		remainingOutstandingPrincipal := initialOutstandingPrincipal.Sub(principal).RoundBank(precision)
+
+		payments[i] = Payment{
+			Date:                          date,
+			PaymentAmount:                 paymentAmount,
+			Interest:                      interest,
+			Principal:                     principal,
+			InitialOutstandingPrincipal:   initialOutstandingPrincipal,
+			RemainingOutstandingPrincipal: remainingOutstandingPrincipal,
+		}
+
+		initialOutstandingPrincipal = remainingOutstandingPrincipal
+	}
+	return payments, nil
+}
+
 // CalculateAnnuity will calculate the annuity payment according to the
 // formula described here: https://financeformulas.net/Annuity_Payment_Formula.html
 //
@@ -30,10 +103,10 @@ const (
 func CalculateAnnuity(
 	totalLoanAmount decimal.Decimal,
 	annualInterestRate decimal.Decimal,
-	durationInMonths uint,
+	durationInMonths int,
 ) (decimal.Decimal, error) {
 
-	if durationInMonths == 0 {
+	if durationInMonths <= 0 {
 		return decimal.Zero, fmt.Errorf(
 			"can't calculate annuity:%w: duration should be bigger than 0, it is %v",
 			ErrInvalidParameter,
@@ -82,4 +155,18 @@ func calculateMonthlyInterestRate(annualInterestRate decimal.Decimal) decimal.De
 
 func fromPercentToDecimal(percentVal decimal.Decimal) decimal.Decimal {
 	return percentVal.Div(decimal.NewFromInt(100))
+}
+
+func calculateInterest(
+	annualInterestRate decimal.Decimal,
+	initialOutstandingPrincipal decimal.Decimal,
+) decimal.Decimal {
+	const (
+		daysInMonth = 30
+		daysInYear  = 360
+	)
+	rate := fromPercentToDecimal(annualInterestRate)
+	numerator := rate.Mul(decimal.NewFromInt(daysInMonth))
+	numerator = numerator.Mul(initialOutstandingPrincipal)
+	return numerator.Div(decimal.NewFromInt(daysInYear))
 }

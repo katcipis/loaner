@@ -3,7 +3,9 @@ package loan_test
 import (
 	"errors"
 	"testing"
+	"time"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/katcipis/loaner/loan"
 	"github.com/shopspring/decimal"
 )
@@ -11,6 +13,154 @@ import (
 // Here you can find some table driven tests, I'm very fond to them :-).
 // This presentation talks a little about them
 // (and some other interesting ideas): https://www.youtube.com/watch?v=8hQG7QlcLBk
+
+func TestCreatePlan(t *testing.T) {
+
+	// Test represents a single test case for the loan plan creation
+	// We use strings here to make the test descriptor more concise and
+	// easier to read as a high level behavior descriptor.
+	type Test struct {
+		name               string
+		totalLoanAmount    string
+		annualInterestRate string
+		durationInMonths   int
+		startDate          time.Time
+		want               []loan.Payment
+		wantErr            error
+	}
+
+	tests := []Test{
+		{
+			name:               "SuccessOn2000LoanWith1.0RateIn2Months",
+			totalLoanAmount:    "2000.0",
+			annualInterestRate: "1.0",
+			durationInMonths:   2,
+			startDate:          parseTime(t, "2018-01-01T00:00:00Z"),
+			want: []loan.Payment{
+				{
+					Date:                          parseTime(t, "2018-01-01T00:00:00Z"),
+					PaymentAmount:                 toDecimal(t, "1001.25"),
+					Interest:                      toDecimal(t, "1.67"),
+					Principal:                     toDecimal(t, "999.58"),
+					InitialOutstandingPrincipal:   toDecimal(t, "2000"),
+					RemainingOutstandingPrincipal: toDecimal(t, "1000.42"),
+				},
+				{
+					Date:                          parseTime(t, "2018-02-01T00:00:00Z"),
+					PaymentAmount:                 toDecimal(t, "1001.25"),
+					Interest:                      toDecimal(t, "0.83"),
+					Principal:                     toDecimal(t, "1000.42"),
+					InitialOutstandingPrincipal:   toDecimal(t, "1000.42"),
+					RemainingOutstandingPrincipal: toDecimal(t, "0.00"),
+				},
+			},
+		},
+		{
+			name:               "TimeAndTimezoneInfoOnDateIsIgnored",
+			startDate:          parseTime(t, "2018-01-01T12:00:00+01:00"),
+			totalLoanAmount:    "2000.0",
+			annualInterestRate: "1.0",
+			durationInMonths:   2,
+			want: []loan.Payment{
+				{
+					Date:                          parseTime(t, "2018-01-01T00:00:00Z"),
+					PaymentAmount:                 toDecimal(t, "1001.25"),
+					Interest:                      toDecimal(t, "1.67"),
+					Principal:                     toDecimal(t, "999.58"),
+					InitialOutstandingPrincipal:   toDecimal(t, "2000"),
+					RemainingOutstandingPrincipal: toDecimal(t, "1000.42"),
+				},
+				{
+					Date:                          parseTime(t, "2018-02-01T00:00:00Z"),
+					PaymentAmount:                 toDecimal(t, "1001.25"),
+					Interest:                      toDecimal(t, "0.83"),
+					Principal:                     toDecimal(t, "1000.42"),
+					InitialOutstandingPrincipal:   toDecimal(t, "1000.42"),
+					RemainingOutstandingPrincipal: toDecimal(t, "0.00"),
+				},
+			},
+		},
+		{
+			name:               "SuccessAcrossYearBoundary",
+			totalLoanAmount:    "2000.0",
+			annualInterestRate: "1.0",
+			durationInMonths:   2,
+			startDate:          parseTime(t, "2020-12-28T00:00:00Z"),
+			want: []loan.Payment{
+				{
+					Date:                          parseTime(t, "2020-12-28T00:00:00Z"),
+					PaymentAmount:                 toDecimal(t, "1001.25"),
+					Interest:                      toDecimal(t, "1.67"),
+					Principal:                     toDecimal(t, "999.58"),
+					InitialOutstandingPrincipal:   toDecimal(t, "2000"),
+					RemainingOutstandingPrincipal: toDecimal(t, "1000.42"),
+				},
+				{
+					Date:                          parseTime(t, "2021-01-28T00:00:00Z"),
+					PaymentAmount:                 toDecimal(t, "1001.25"),
+					Interest:                      toDecimal(t, "0.83"),
+					Principal:                     toDecimal(t, "1000.42"),
+					InitialOutstandingPrincipal:   toDecimal(t, "1000.42"),
+					RemainingOutstandingPrincipal: toDecimal(t, "0.00"),
+				},
+			},
+		},
+		{
+			name:               "ErrorOnStartDateDay29",
+			totalLoanAmount:    "5000.0",
+			annualInterestRate: "5.0",
+			durationInMonths:   3,
+			startDate:          parseTime(t, "2020-12-29T00:00:00Z"),
+			wantErr:            loan.ErrInvalidParameter,
+		},
+		{
+			name:               "ErrorOnStartDateDay30",
+			totalLoanAmount:    "5000.0",
+			annualInterestRate: "5.0",
+			durationInMonths:   3,
+			startDate:          parseTime(t, "2020-12-29T00:00:00Z"),
+			wantErr:            loan.ErrInvalidParameter,
+		},
+		{
+			name:               "ErrorOnStartDateDay31",
+			totalLoanAmount:    "5000.0",
+			annualInterestRate: "5.0",
+			durationInMonths:   3,
+			startDate:          parseTime(t, "2020-12-29T00:00:00Z"),
+			wantErr:            loan.ErrInvalidParameter,
+		},
+		{
+			name:               "ErrorZeroInterestRate",
+			totalLoanAmount:    "5000.0",
+			annualInterestRate: "0.0",
+			durationInMonths:   3,
+			startDate:          parseTime(t, "2020-12-01T00:00:00Z"),
+			wantErr:            loan.ErrInvalidParameter,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			loanAmount := toDecimal(t, test.totalLoanAmount)
+			interestRate := toDecimal(t, test.annualInterestRate)
+
+			got, err := loan.CreatePlan(
+				loanAmount,
+				interestRate,
+				test.durationInMonths,
+				test.startDate,
+			)
+
+			if !errors.Is(err, test.wantErr) {
+				t.Errorf("got error %v; want %v", err, test.wantErr)
+			}
+
+			if diff := cmp.Diff(test.want, got); diff != "" {
+				t.Errorf("CreatePlan() mismatch (-want +got):\n%s", diff)
+			}
+		})
+	}
+}
 
 func TestAnnuityCalculation(t *testing.T) {
 
@@ -21,7 +171,7 @@ func TestAnnuityCalculation(t *testing.T) {
 		name               string
 		totalLoanAmount    string
 		annualInterestRate string
-		durationInMonths   uint
+		durationInMonths   int
 		want               string
 		wantErr            error
 	}
@@ -74,6 +224,13 @@ func TestAnnuityCalculation(t *testing.T) {
 			totalLoanAmount:    "500.00",
 			annualInterestRate: "3.0",
 			durationInMonths:   0,
+			wantErr:            loan.ErrInvalidParameter,
+		},
+		{
+			name:               "ErrorIfDurationIsNegative",
+			totalLoanAmount:    "500.00",
+			annualInterestRate: "3.0",
+			durationInMonths:   -1,
 			wantErr:            loan.ErrInvalidParameter,
 		},
 		{
@@ -136,4 +293,13 @@ func toDecimal(t *testing.T, v string) decimal.Decimal {
 		t.Fatal(err)
 	}
 	return d
+}
+
+func parseTime(t *testing.T, s string) time.Time {
+	t.Helper()
+	v, err := time.Parse(time.RFC3339, s)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return v
 }
