@@ -16,6 +16,8 @@
 
 # Loaner
 
+![CI Status](https://github.com/katcipis/loaner/workflows/CI/badge.svg)[![Go Report Card](https://goreportcard.com/badge/github.com/katcipis/loaner)](https://goreportcard.com/report/github.com/katcipis/loaner)
+
 Loaner is a service responsible for creating payment plans for loans.
 
 The reference documentation for the API can be found [here](api.md).
