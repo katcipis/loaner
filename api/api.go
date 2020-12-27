@@ -73,7 +73,7 @@ func New(createLoanPlan LoanPlanCreator) http.Handler {
 		if req.Method != http.MethodPost {
 			res.WriteHeader(http.StatusMethodNotAllowed)
 			msg := fmt.Sprintf("method %q is not allowed", req.Method)
-			logResponseBodyWrite(logger, res, newErrorResponse(msg))
+			logResponseBodyWrite(logger, res, newErrorResponse(logger, msg))
 			logger.WithFields(log.Fields{"error": msg}).Warning("method not allowed")
 			return
 		}
@@ -84,7 +84,7 @@ func New(createLoanPlan LoanPlanCreator) http.Handler {
 		if err != nil {
 			msg := fmt.Sprintf("cant parse request body as JSON:%v", err)
 			res.WriteHeader(http.StatusBadRequest)
-			logResponseBodyWrite(logger, res, newErrorResponse(msg))
+			logResponseBodyWrite(logger, res, newErrorResponse(logger, msg))
 			logger.WithFields(log.Fields{"error": msg}).Warning("invalid request body")
 			return
 		}
@@ -124,7 +124,7 @@ func New(createLoanPlan LoanPlanCreator) http.Handler {
 				// I'm specially fond to the idea of a cross service
 				// operational trace (instead of stack traces).
 				// But I never tried it yet :-).
-				logResponseBodyWrite(logger, res, newErrorResponse(err.Error()))
+				logResponseBodyWrite(logger, res, newErrorResponse(logger, err.Error()))
 				logger.WithError(err).Warning("bad request error")
 				return
 			}
@@ -132,7 +132,7 @@ func New(createLoanPlan LoanPlanCreator) http.Handler {
 			// security reasons it would be a good idea to have
 			// a tracing id for errors to help map the error to the logs.
 			res.WriteHeader(http.StatusInternalServerError)
-			logResponseBodyWrite(logger, res, newErrorResponse("internal server error"))
+			logResponseBodyWrite(logger, res, newErrorResponse(logger, "internal server error"))
 			logger.WithError(err).Error("internal server error")
 			return
 		}
@@ -141,7 +141,7 @@ func New(createLoanPlan LoanPlanCreator) http.Handler {
 			BorrowerPayments: toBorrowerPayments(payments),
 		}
 		res.WriteHeader(http.StatusOK)
-		logResponseBodyWrite(logger, res, jsonResponse(resp))
+		logResponseBodyWrite(logger, res, toJSON(logger, resp))
 	})
 	return mux
 }
@@ -172,21 +172,23 @@ func logResponseBodyWrite(logger *log.Entry, w io.Writer, data []byte) {
 	}
 }
 
-func newErrorResponse(message string) []byte {
-	return jsonResponse(ErrorResponse{
+func newErrorResponse(logger *log.Entry, message string) []byte {
+	return toJSON(logger, ErrorResponse{
 		Error: Error{Message: message},
 	})
 }
 
-func jsonResponse(v interface{}) []byte {
-	// TODO: handle and log err
-	res, _ := json.Marshal(v)
+func toJSON(logger *log.Entry, v interface{}) []byte {
+	res, err := json.Marshal(v)
+	if err != nil {
+		logger.WithError(err).Warning("unable to marshal as JSON")
+	}
 	return res
 }
 
 func handleFieldParsingError(logger *log.Entry, res http.ResponseWriter, fieldName string, err error) {
 	msg := fmt.Sprintf("can't parse %q from request:%v", fieldName, err)
 	res.WriteHeader(http.StatusBadRequest)
-	logResponseBodyWrite(logger, res, newErrorResponse(msg))
+	logResponseBodyWrite(logger, res, newErrorResponse(logger, msg))
 	logger.WithError(err).WithFields(log.Fields{"field": fieldName}).Warning("invalid field on request")
 }
