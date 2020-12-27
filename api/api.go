@@ -73,7 +73,7 @@ func New(createLoanPlan LoanPlanCreator) http.Handler {
 		if req.Method != http.MethodPost {
 			res.WriteHeader(http.StatusMethodNotAllowed)
 			msg := fmt.Sprintf("method %q is not allowed", req.Method)
-			logResponseBodyWrite(logger, res, errorResponse(msg))
+			logResponseBodyWrite(logger, res, newErrorResponse(msg))
 			logger.WithFields(log.Fields{"error": msg}).Warning("method not allowed")
 			return
 		}
@@ -84,31 +84,30 @@ func New(createLoanPlan LoanPlanCreator) http.Handler {
 		if err != nil {
 			msg := fmt.Sprintf("error parsing JSON request body: %v", err)
 			res.WriteHeader(http.StatusBadRequest)
-			logResponseBodyWrite(logger, res, errorResponse(msg))
+			logResponseBodyWrite(logger, res, newErrorResponse(msg))
 			logger.WithFields(log.Fields{"error": msg}).Warning("invalid request body")
 			return
 		}
 
-		_, err = decimal.NewFromString(parsedReq.LoanAmount)
+		loanAmount, err := decimal.NewFromString(parsedReq.LoanAmount)
 		if err != nil {
 			handleFieldParsingError(logger, res, "loanAmount", err)
 			return
 		}
 
-		_, err = decimal.NewFromString(parsedReq.NominalRate)
+		annualInterestRate, err := decimal.NewFromString(parsedReq.NominalRate)
 		if err != nil {
 			handleFieldParsingError(logger, res, "nominalRate", err)
 			return
 		}
 
-		_, err = time.Parse(dateLayout, parsedReq.StartDate)
+		startDate, err := time.Parse(dateLayout, parsedReq.StartDate)
 		if err != nil {
 			handleFieldParsingError(logger, res, "startDate", err)
 			return
 		}
 
-		// TODO: check parameters are properly passed
-		payments, err := createLoanPlan(decimal.Zero, decimal.Zero, 0, time.Time{})
+		payments, err := createLoanPlan(loanAmount, annualInterestRate, parsedReq.Duration, startDate)
 		if err != nil {
 			if errors.Is(err, loan.ErrInvalidParameter) {
 				res.WriteHeader(http.StatusBadRequest)
@@ -125,7 +124,7 @@ func New(createLoanPlan LoanPlanCreator) http.Handler {
 				// I'm specially fond to the idea of a cross service
 				// operational trace (instead of stack traces).
 				// But I never tried it yet :-).
-				logResponseBodyWrite(logger, res, errorResponse(err.Error()))
+				logResponseBodyWrite(logger, res, newErrorResponse(err.Error()))
 				logger.WithFields(log.Fields{"error": err.Error()}).Warning("bad request error")
 				return
 			}
@@ -133,7 +132,7 @@ func New(createLoanPlan LoanPlanCreator) http.Handler {
 			// security reasons it would be a good idea to have
 			// a tracing id for errors to help map the error to the logs.
 			res.WriteHeader(http.StatusInternalServerError)
-			logResponseBodyWrite(logger, res, errorResponse("internal server error"))
+			logResponseBodyWrite(logger, res, newErrorResponse("internal server error"))
 			logger.WithFields(log.Fields{"error": err.Error()}).Error("internal server error")
 			return
 		}
@@ -173,7 +172,7 @@ func logResponseBodyWrite(logger *log.Entry, w io.Writer, data []byte) {
 	}
 }
 
-func errorResponse(message string) []byte {
+func newErrorResponse(message string) []byte {
 	return jsonResponse(ErrorResponse{
 		Error: Error{Message: message},
 	})
@@ -188,6 +187,6 @@ func jsonResponse(v interface{}) []byte {
 func handleFieldParsingError(logger *log.Entry, res http.ResponseWriter, fieldName string, err error) {
 	msg := fmt.Sprintf("error parsing %s from request:%v", fieldName, err)
 	res.WriteHeader(http.StatusBadRequest)
-	logResponseBodyWrite(logger, res, errorResponse(msg))
+	logResponseBodyWrite(logger, res, newErrorResponse(msg))
 	logger.WithFields(log.Fields{"error": msg}).Warning("invalid request body")
 }

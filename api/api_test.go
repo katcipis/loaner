@@ -195,6 +195,9 @@ func TestLoanPlanCreation(t *testing.T) {
 				durationInMonths int,
 				start time.Time,
 			) ([]loan.Payment, error) {
+				// There is no validation of parameters passed here
+				// because proper parameter passing is covered
+				// by integration tests.
 				return test.injectResponse, test.injectErr
 			})
 			server := httptest.NewServer(service)
