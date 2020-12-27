@@ -102,14 +102,13 @@ func New(createLoanPlan LoanPlanCreator) http.Handler {
 				logger.WithFields(log.Fields{"error": err.Error()}).Warning("bad request error")
 				return
 			}
-			//// Specially when you can't give much detail on errors for
-			//// security reasons it would be a good idea to have
-			//// a tracing id for errors to help map the error to the logs.
-			//res.WriteHeader(http.StatusInternalServerError)
-			//logResponseBodyWrite(logger, res, errorResponse("internal server error"))
-			//logger.WithFields(log.Fields{"error": err.Error()}).Error("internal server error")
-			//return
-			// TODO: test internal unknown errors
+			// Specially when you can't give much detail on errors for
+			// security reasons it would be a good idea to have
+			// a tracing id for errors to help map the error to the logs.
+			res.WriteHeader(http.StatusInternalServerError)
+			logResponseBodyWrite(logger, res, errorResponse("internal server error"))
+			logger.WithFields(log.Fields{"error": err.Error()}).Error("internal server error")
+			return
 		}
 
 		res.WriteHeader(http.StatusCreated)

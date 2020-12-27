@@ -3,6 +3,7 @@ package api_test
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -31,6 +32,12 @@ func TestLoanPlanCreation(t *testing.T) {
 			requestBody:    toJSON(t, api.CreateLoanPlanRequest{}),
 			injectErr:      loan.ErrInvalidParameter,
 			wantStatusCode: http.StatusBadRequest,
+		},
+		{
+			name:           "InternalServerErrorOnLoanCalculationError",
+			requestBody:    toJSON(t, api.CreateLoanPlanRequest{}),
+			injectErr:      errors.New("injected generic error"),
+			wantStatusCode: http.StatusInternalServerError,
 		},
 	}
 
