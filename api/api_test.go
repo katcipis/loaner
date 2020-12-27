@@ -41,6 +41,16 @@ func TestLoanPlanCreation(t *testing.T) {
 			wantStatusCode: http.StatusBadRequest,
 		},
 		{
+			name:           "BadRequestIfRequestBodyIsEmpty",
+			requestBody:    []byte{},
+			wantStatusCode: http.StatusBadRequest,
+		},
+		{
+			name:           "BadRequestIfRequestBodyIsNotValidJSON",
+			requestBody:    []byte("{notvalidjson]"),
+			wantStatusCode: http.StatusBadRequest,
+		},
+		{
 			name:           "InternalServerErrorOnLoanCalculationError",
 			requestBody:    validCreateLoanRequestBody(t),
 			injectErr:      errors.New("injected generic error"),
