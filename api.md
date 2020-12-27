@@ -81,10 +81,10 @@ With the following request body:
 
 ```json
 {
-"loanAmount": <decimal>,
-"nominalRate": <decimal>,
-"duration": <int>,
-"startDate": <date>
+    "loanAmount": <decimal>,
+    "nominalRate": <decimal>,
+    "duration": <int>,
+    "startDate": <date>
 }
 ```
 
