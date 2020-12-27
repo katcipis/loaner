@@ -81,10 +81,10 @@ With the following request body:
 
 ```json
 {
-"loanAmount": <decimal>,
-"nominalRate": <decimal>,
-"duration": <int>,
-"startDate": <date>
+    "loanAmount": <decimal>,
+    "nominalRate": <decimal>,
+    "duration": <int>,
+    "startDate": <date>
 }
 ```
 
@@ -99,7 +99,7 @@ Example of request body:
 }
 ```
 
-In case of success you can expect an status code 201 and the following response:
+In case of success you can expect an status code 200/OK and the following response:
 
 ```json
 {
