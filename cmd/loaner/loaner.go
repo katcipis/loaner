@@ -11,6 +11,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// VersionString version of the service
 var VersionString = "no version info"
 
 func main() {
