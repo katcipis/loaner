@@ -56,6 +56,49 @@ func TestLoanPlanCreation(t *testing.T) {
 			injectErr:      errors.New("injected generic error"),
 			wantStatusCode: http.StatusInternalServerError,
 		},
+		{
+			name:        "SuccessBuildingLoanPlan",
+			requestBody: validCreateLoanRequestBody(t),
+			injectResponse: []loan.Payment{
+				{
+					Date:                          parseTime(t, "2018-01-01T00:00:00Z"),
+					PaymentAmount:                 parseDecimal(t, "1001.25"),
+					Interest:                      parseDecimal(t, "1.67"),
+					Principal:                     parseDecimal(t, "999.58"),
+					InitialOutstandingPrincipal:   parseDecimal(t, "2000"),
+					RemainingOutstandingPrincipal: parseDecimal(t, "1000.42"),
+				},
+				{
+					Date:                          parseTime(t, "2018-02-01T00:00:00Z"),
+					PaymentAmount:                 parseDecimal(t, "1001.25"),
+					Interest:                      parseDecimal(t, "0.83"),
+					Principal:                     parseDecimal(t, "1000.42"),
+					InitialOutstandingPrincipal:   parseDecimal(t, "1000.42"),
+					RemainingOutstandingPrincipal: parseDecimal(t, "0.00"),
+				},
+			},
+			want: api.CreateLoanPlanResponse{
+				BorrowerPayments: []api.BorrowerPayment{
+					{
+						Date:                          "2018-02-01T00:00:00Z",
+						PaymentAmount:                 "1001.25",
+						Interest:                      "0.83",
+						Principal:                     "1000.42",
+						InitialOutstandingPrincipal:   "1000.42",
+						RemainingOutstandingPrincipal: "0.00",
+					},
+					{
+						Date:                          "2018-02-01T00:00:00Z",
+						PaymentAmount:                 "1001.25",
+						Interest:                      "0.83",
+						Principal:                     "1000.42",
+						InitialOutstandingPrincipal:   "1000.42",
+						RemainingOutstandingPrincipal: "0.00",
+					},
+				},
+			},
+			wantStatusCode: http.StatusOK,
+		},
 	}
 
 	for _, test := range tests {
@@ -103,7 +146,7 @@ func TestLoanPlanCreation(t *testing.T) {
 				t.Fatalf("got response %d want %d", res.StatusCode, test.wantStatusCode)
 			}
 
-			if test.wantStatusCode != http.StatusCreated {
+			if test.wantStatusCode != http.StatusOK {
 				wantErr := api.ErrorResponse{}
 				fromJSON(t, res.Body, &wantErr)
 
@@ -163,4 +206,22 @@ func newRequest(t *testing.T, method string, url string, body []byte) *http.Requ
 
 func validCreateLoanRequestBody(t *testing.T) []byte {
 	return toJSON(t, api.CreateLoanPlanRequest{})
+}
+
+func parseDecimal(t *testing.T, v string) decimal.Decimal {
+	t.Helper()
+	d, err := decimal.NewFromString(v)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return d
+}
+
+func parseTime(t *testing.T, s string) time.Time {
+	t.Helper()
+	v, err := time.Parse(time.RFC3339, s)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return v
 }

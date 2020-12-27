@@ -99,7 +99,7 @@ Example of request body:
 }
 ```
 
-In case of success you can expect an status code 201 and the following response:
+In case of success you can expect an status code 200/OK and the following response:
 
 ```json
 {

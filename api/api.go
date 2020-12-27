@@ -24,9 +24,19 @@ type CreateLoanPlanRequest struct {
 	StartDate   string `json:"startDate"`
 }
 
+// BorrowerPayment is part of the CreateLoanPlanResponse
+type BorrowerPayment struct {
+	Date                          string `json:"date"`
+	PaymentAmount                 string `json:"borrowerPaymentAmount"`
+	Interest                      string `json:"interest"`
+	Principal                     string `json:"principal"`
+	InitialOutstandingPrincipal   string `json:"initialOutstandingPrincipal"`
+	RemainingOutstandingPrincipal string `json:"remainingOutstandingPrincipal"`
+}
+
 // CreateLoanPlanResponse is the response of the create loan plan request
 type CreateLoanPlanResponse struct {
-	FullName string `json:"fullname"`
+	BorrowerPayments []BorrowerPayment `json:"borrowerPayments"`
 }
 
 // Error contains error information used in error responses
@@ -110,7 +120,7 @@ func New(createLoanPlan LoanPlanCreator) http.Handler {
 			return
 		}
 
-		res.WriteHeader(http.StatusCreated)
+		res.WriteHeader(http.StatusOK)
 		logResponseBodyWrite(logger, res, jsonResponse(CreateLoanPlanResponse{}))
 	})
 	return mux
