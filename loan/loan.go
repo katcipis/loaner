@@ -71,11 +71,10 @@ func CreatePlan(
 		date := time.Date(year, month, day, 0, 0, 0, 0, time.UTC)
 		interest := calculateInterest(annualInterestRate, initialOutstandingPrincipal).RoundBank(precision)
 
-		principal := annuity.Sub(interest)
+		principal := annuity.Sub(interest).RoundBank(precision)
 		if principal.GreaterThan(initialOutstandingPrincipal) {
 			principal = initialOutstandingPrincipal
 		}
-		principal = principal.RoundBank(precision)
 
 		paymentAmount := principal.Add(interest).RoundBank(precision)
 		remainingOutstandingPrincipal := initialOutstandingPrincipal.Sub(principal).RoundBank(precision)

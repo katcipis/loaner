@@ -55,25 +55,6 @@ func TestCreatePlan(t *testing.T) {
 				},
 			},
 		},
-		// TODO: test case not working yet
-		//{
-		//name:               "SuccessOn5000LoanWith5.0RateIn3Months",
-		//totalLoanAmount:    "5000.0",
-		//annualInterestRate: "5.0",
-		//durationInMonths:   3,
-		//startDate:          parseTime(t, "2018-01-01T00:00:00Z"),
-		//want: []loan.Payment{
-		//{
-		//Date: parseTime(t, "2018-01-01T00:00:00Z"),
-		//},
-		//{
-		//Date: parseTime(t, "2018-02-01T00:00:00Z"),
-		//},
-		//{
-		//Date: parseTime(t, "2018-03-01T00:00:00Z"),
-		//},
-		//},
-		//},
 		{
 			name:               "TimeAndTimezoneInfoOnDateIsIgnored",
 			startDate:          parseTime(t, "2018-01-01T12:00:00+01:00"),
