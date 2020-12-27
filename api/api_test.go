@@ -74,18 +74,18 @@ func TestLoanPlanCreation(t *testing.T) {
 					Interest:                      parseDecimal(t, "0.83"),
 					Principal:                     parseDecimal(t, "1000.42"),
 					InitialOutstandingPrincipal:   parseDecimal(t, "1000.42"),
-					RemainingOutstandingPrincipal: parseDecimal(t, "0.00"),
+					RemainingOutstandingPrincipal: parseDecimal(t, "0"),
 				},
 			},
 			want: api.CreateLoanPlanResponse{
 				BorrowerPayments: []api.BorrowerPayment{
 					{
-						Date:                          "2018-02-01T00:00:00Z",
+						Date:                          "2018-01-01T00:00:00Z",
 						PaymentAmount:                 "1001.25",
-						Interest:                      "0.83",
-						Principal:                     "1000.42",
-						InitialOutstandingPrincipal:   "1000.42",
-						RemainingOutstandingPrincipal: "0.00",
+						Interest:                      "1.67",
+						Principal:                     "999.58",
+						InitialOutstandingPrincipal:   "2000",
+						RemainingOutstandingPrincipal: "1000.42",
 					},
 					{
 						Date:                          "2018-02-01T00:00:00Z",
@@ -93,7 +93,7 @@ func TestLoanPlanCreation(t *testing.T) {
 						Interest:                      "0.83",
 						Principal:                     "1000.42",
 						InitialOutstandingPrincipal:   "1000.42",
-						RemainingOutstandingPrincipal: "0.00",
+						RemainingOutstandingPrincipal: "0",
 					},
 				},
 			},

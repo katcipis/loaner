@@ -90,7 +90,7 @@ func New(createLoanPlan LoanPlanCreator) http.Handler {
 		}
 
 		// TODO: check parameters are properly passed
-		_, err = createLoanPlan(decimal.Zero, decimal.Zero, 0, time.Time{})
+		payments, err := createLoanPlan(decimal.Zero, decimal.Zero, 0, time.Time{})
 		if err != nil {
 			if errors.Is(err, loan.ErrInvalidParameter) {
 				res.WriteHeader(http.StatusBadRequest)
@@ -120,10 +120,28 @@ func New(createLoanPlan LoanPlanCreator) http.Handler {
 			return
 		}
 
+		resp := CreateLoanPlanResponse{
+			BorrowerPayments: toBorrowerPayments(payments),
+		}
 		res.WriteHeader(http.StatusOK)
-		logResponseBodyWrite(logger, res, jsonResponse(CreateLoanPlanResponse{}))
+		logResponseBodyWrite(logger, res, jsonResponse(resp))
 	})
 	return mux
+}
+
+func toBorrowerPayments(payments []loan.Payment) []BorrowerPayment {
+	res := make([]BorrowerPayment, len(payments))
+	for i, p := range payments {
+		res[i] = BorrowerPayment{
+			Date:                          p.Date.Format(time.RFC3339),
+			PaymentAmount:                 p.PaymentAmount.String(),
+			Interest:                      p.Interest.String(),
+			Principal:                     p.Principal.String(),
+			InitialOutstandingPrincipal:   p.InitialOutstandingPrincipal.String(),
+			RemainingOutstandingPrincipal: p.RemainingOutstandingPrincipal.String(),
+		}
+	}
+	return res
 }
 
 func logResponseBodyWrite(logger *log.Entry, w io.Writer, data []byte) {
