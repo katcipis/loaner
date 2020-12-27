@@ -95,7 +95,7 @@ And the service will be available at port 8080.
 Here is an example of how to make a request to the service with cURL:
 
 ```sh
-curl http://localhost:8080/v1/loan/plan -X POST -d '{"todo":"example"}'
+curl http://localhost:8080/loan-plan -X POST -d '{"loanAmount":"5000","nominalRate":"5.0","duration":24,"startDate": "2018-01-01T00:00:01Z"}'
 ```
 
 # Deployment

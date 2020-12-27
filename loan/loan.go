@@ -53,8 +53,6 @@ func CreatePlan(
 		)
 	}
 
-	const precision = 2
-
 	annuity, err := CalculateAnnuity(totalLoanAmount, annualInterestRate, durationInMonths)
 	if err != nil {
 		return nil, fmt.Errorf("can't create loan plan:%w", err)
@@ -130,8 +128,6 @@ func CalculateAnnuity(
 		)
 	}
 
-	const precision = 2
-
 	// Assuming for all calculation that the default precision of 16 is enough
 	// Only the final result is rounded.
 	monthlyInterestRate := fromPercentToDecimal(calculateMonthlyInterestRate(annualInterestRate))
@@ -147,6 +143,8 @@ func CalculateAnnuity(
 func (e Error) Error() string {
 	return string(e)
 }
+
+const precision = 2
 
 func calculateMonthlyInterestRate(annualInterestRate decimal.Decimal) decimal.Decimal {
 	monthsInYear := decimal.NewFromInt(12)

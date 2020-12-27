@@ -32,7 +32,7 @@ image:
 
 .PHONY: run
 run: image
-	docker run $(img)
+	docker run -p 8080:8080 $(img)
 
 .PHONY: publish
 publish: image
