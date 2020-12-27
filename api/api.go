@@ -60,6 +60,7 @@ type LoanPlanCreator func(
 ) ([]loan.Payment, error)
 
 const (
+	// CreateLoanPlanPath is the resource path used to create loan plans
 	CreateLoanPlanPath = "/loan-plan"
 )
 
