@@ -31,18 +31,18 @@ func TestLoanPlanCreation(t *testing.T) {
 		{
 			name:           "MethodNotAllowedForGet",
 			method:         "GET",
-			requestBody:    toJSON(t, api.CreateLoanPlanRequest{}),
+			requestBody:    validCreateLoanRequestBody(t),
 			wantStatusCode: http.StatusMethodNotAllowed,
 		},
 		{
 			name:           "BadRequestIfParametersAreInvalid",
-			requestBody:    toJSON(t, api.CreateLoanPlanRequest{}),
+			requestBody:    validCreateLoanRequestBody(t),
 			injectErr:      loan.ErrInvalidParameter,
 			wantStatusCode: http.StatusBadRequest,
 		},
 		{
 			name:           "InternalServerErrorOnLoanCalculationError",
-			requestBody:    toJSON(t, api.CreateLoanPlanRequest{}),
+			requestBody:    validCreateLoanRequestBody(t),
 			injectErr:      errors.New("injected generic error"),
 			wantStatusCode: http.StatusInternalServerError,
 		},
@@ -149,4 +149,8 @@ func newRequest(t *testing.T, method string, url string, body []byte) *http.Requ
 		t.Fatal(err)
 	}
 	return req
+}
+
+func validCreateLoanRequestBody(t *testing.T) []byte {
+	return toJSON(t, api.CreateLoanPlanRequest{})
 }
