@@ -99,6 +99,45 @@ func TestLoanPlanCreation(t *testing.T) {
 			},
 			wantStatusCode: http.StatusOK,
 		},
+		{
+			name:        "SuccessBuildingLoanPlanWithOnePayment",
+			requestBody: validCreateLoanRequestBody(t),
+			injectResponse: []loan.Payment{
+				{
+					Date:                          parseTime(t, "2018-01-01T00:00:00Z"),
+					PaymentAmount:                 parseDecimal(t, "1001.25"),
+					Interest:                      parseDecimal(t, "1.67"),
+					Principal:                     parseDecimal(t, "999.58"),
+					InitialOutstandingPrincipal:   parseDecimal(t, "2000"),
+					RemainingOutstandingPrincipal: parseDecimal(t, "1000.42"),
+				},
+			},
+			want: api.CreateLoanPlanResponse{
+				BorrowerPayments: []api.BorrowerPayment{
+					{
+						Date:                          "2018-01-01T00:00:00Z",
+						PaymentAmount:                 "1001.25",
+						Interest:                      "1.67",
+						Principal:                     "999.58",
+						InitialOutstandingPrincipal:   "2000",
+						RemainingOutstandingPrincipal: "1000.42",
+					},
+				},
+			},
+			wantStatusCode: http.StatusOK,
+		},
+		{
+			// On the core logic this doesn't seem possible.
+			// But it is important to document/prove what happens
+			// if the plan is empty.
+			name:           "SuccessBuildingEmptyLoanPlan",
+			requestBody:    validCreateLoanRequestBody(t),
+			injectResponse: []loan.Payment{},
+			want: api.CreateLoanPlanResponse{
+				BorrowerPayments: []api.BorrowerPayment{},
+			},
+			wantStatusCode: http.StatusOK,
+		},
 	}
 
 	for _, test := range tests {
