@@ -60,14 +60,13 @@ func New(createLoanPlan LoanPlanCreator) http.Handler {
 	logger := log.WithFields(log.Fields{"path": CreateLoanPlanPath})
 
 	mux.HandleFunc(CreateLoanPlanPath, func(res http.ResponseWriter, req *http.Request) {
-		// TODO: test wrong method
-		//if req.Method != http.MethodPost {
-		//res.WriteHeader(http.StatusMethodNotAllowed)
-		//msg := fmt.Sprintf("method %q is not allowed", req.Method)
-		//logResponseBodyWrite(logger, res, errorResponse(msg))
-		//logger.WithFields(log.Fields{"error": msg}).Warning("method not allowed")
-		//return
-		//}
+		if req.Method != http.MethodPost {
+			res.WriteHeader(http.StatusMethodNotAllowed)
+			msg := fmt.Sprintf("method %q is not allowed", req.Method)
+			logResponseBodyWrite(logger, res, errorResponse(msg))
+			logger.WithFields(log.Fields{"error": msg}).Warning("method not allowed")
+			return
+		}
 		dec := json.NewDecoder(req.Body)
 		parsedReq := CreateLoanPlanRequest{}
 

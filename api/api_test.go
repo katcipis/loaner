@@ -20,6 +20,7 @@ func TestLoanPlanCreation(t *testing.T) {
 	type Test struct {
 		name           string
 		requestBody    []byte
+		method         string
 		injectResponse []loan.Payment
 		injectErr      error
 		wantStatusCode int
@@ -27,6 +28,12 @@ func TestLoanPlanCreation(t *testing.T) {
 	}
 
 	tests := []Test{
+		{
+			name:           "MethodNotAllowedForGet",
+			method:         "GET",
+			requestBody:    toJSON(t, api.CreateLoanPlanRequest{}),
+			wantStatusCode: http.StatusMethodNotAllowed,
+		},
 		{
 			name:           "BadRequestIfParametersAreInvalid",
 			requestBody:    toJSON(t, api.CreateLoanPlanRequest{}),
@@ -67,8 +74,13 @@ func TestLoanPlanCreation(t *testing.T) {
 			server := httptest.NewServer(service)
 			defer server.Close()
 
+			method := http.MethodPost
+			if test.method != "" {
+				method = test.method
+			}
+
 			createLoanPlanURL := server.URL + api.CreateLoanPlanPath
-			request := newRequest(t, http.MethodPost, createLoanPlanURL, test.requestBody)
+			request := newRequest(t, method, createLoanPlanURL, test.requestBody)
 			client := server.Client()
 
 			res, err := client.Do(request)
