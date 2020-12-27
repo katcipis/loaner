@@ -1,6 +1,6 @@
 goversion=1.15.6
 golangci_lint_version=1.33
-short_sha=$(shell git rev-parse --short HEAD)
+short_sha=$(shell git rev-parse --short HEAD || echo latest)
 version?=$(short_sha)
 img=katcipis/loaner:$(version)
 vols=-v `pwd`:/app -w /app
